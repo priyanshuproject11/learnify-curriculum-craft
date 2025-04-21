@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,15 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom LMS colors
+				lms: {
+					'blue': '#D3E4FD',
+					'green': '#F2FCE2',
+					'peach': '#FDE1D3',
+					'purple': '#E5DEFF',
+					'yellow': '#FEF7CD',
+					'pink': '#FFDEE2',
 				}
 			},
 			borderRadius: {
@@ -89,6 +99,9 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
+			},
+			boxShadow: {
+				'soft': '0 4px 12px rgba(0, 0, 0, 0.05)',
 			}
 		}
 	},
