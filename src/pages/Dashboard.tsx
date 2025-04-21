@@ -10,6 +10,8 @@ const features = [
     description: "Plan and organize your curriculum structure",
     href: "/curriculum",
     enabled: true,
+    color: "bg-lms-blue/20",
+    iconBg: "bg-lms-blue/40"
   },
   {
     title: "Resources",
@@ -17,6 +19,8 @@ const features = [
     description: "Manage teaching materials and resources",
     href: "/resources",
     enabled: false,
+    color: "bg-lms-green/20",
+    iconBg: "bg-lms-green/40"
   },
   {
     title: "AI Tools",
@@ -24,6 +28,8 @@ const features = [
     description: "AI-powered teaching assistants",
     href: "/ai-tools",
     enabled: false,
+    color: "bg-lms-purple/20",
+    iconBg: "bg-lms-purple/40"
   },
   {
     title: "Assessments",
@@ -31,6 +37,8 @@ const features = [
     description: "Create and manage assessments",
     href: "/assessments",
     enabled: false,
+    color: "bg-lms-peach/20",
+    iconBg: "bg-lms-peach/40"
   },
   {
     title: "Students",
@@ -38,6 +46,8 @@ const features = [
     description: "Student profiles and progress tracking",
     href: "/students",
     enabled: false,
+    color: "bg-lms-pink/20",
+    iconBg: "bg-lms-pink/40"
   },
   {
     title: "Settings",
@@ -45,6 +55,8 @@ const features = [
     description: "Configure your LMS settings",
     href: "/settings",
     enabled: false,
+    color: "bg-lms-yellow/20",
+    iconBg: "bg-lms-yellow/40"
   },
 ];
 
@@ -57,18 +69,22 @@ const Dashboard = () => {
           <p className="text-gray-600 mt-2">Your AI-powered Learning Management System</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {features.map((feature) => (
             <Link
               key={feature.title}
               to={feature.enabled ? feature.href : "#"}
               className={`${!feature.enabled && "pointer-events-none"}`}
             >
-              <Card className="h-full transition-all hover:shadow-lg hover:scale-[1.02]">
+              <Card 
+                className={`h-full transition-all hover:shadow-lg hover:scale-[1.02] ${feature.color} backdrop-blur-sm rounded-xl`}
+              >
                 <CardContent className="p-6">
                   <div className="flex flex-col items-center text-center space-y-4">
                     <div className={`p-3 rounded-full ${
-                      feature.enabled ? "bg-primary" : "bg-gray-100"
+                      feature.enabled 
+                        ? feature.iconBg 
+                        : "bg-gray-100"
                     }`}>
                       {feature.icon}
                     </div>
