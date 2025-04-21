@@ -10,8 +10,8 @@ const features = [
     description: "Plan and organize your curriculum structure",
     href: "/curriculum",
     enabled: true,
-    color: "bg-[#0EA5E9]/30",
-    iconBg: "bg-[#0EA5E9]/50"
+    color: "bg-lms-blue/20",
+    iconBg: "bg-lms-blue/40"
   },
   {
     title: "Resources",
@@ -19,8 +19,8 @@ const features = [
     description: "Manage teaching materials and resources",
     href: "/resources",
     enabled: false,
-    color: "bg-[#D946EF]/30",
-    iconBg: "bg-[#D946EF]/50"
+    color: "bg-lms-green/20",
+    iconBg: "bg-lms-green/40"
   },
   {
     title: "AI Tools",
@@ -28,8 +28,8 @@ const features = [
     description: "AI-powered teaching assistants",
     href: "/ai-tools",
     enabled: false,
-    color: "bg-[#8B5CF6]/30",
-    iconBg: "bg-[#8B5CF6]/50"
+    color: "bg-lms-purple/20",
+    iconBg: "bg-lms-purple/40"
   },
   {
     title: "Assessments",
@@ -37,8 +37,8 @@ const features = [
     description: "Create and manage assessments",
     href: "/assessments",
     enabled: false,
-    color: "bg-[#F97316]/30",
-    iconBg: "bg-[#F97316]/50"
+    color: "bg-lms-peach/20",
+    iconBg: "bg-lms-peach/40"
   },
   {
     title: "Students",
@@ -46,8 +46,8 @@ const features = [
     description: "Student profiles and progress tracking",
     href: "/students",
     enabled: false,
-    color: "bg-[#ea384c]/30",
-    iconBg: "bg-[#ea384c]/50"
+    color: "bg-lms-pink/20",
+    iconBg: "bg-lms-pink/40"
   },
   {
     title: "Settings",
@@ -55,8 +55,8 @@ const features = [
     description: "Configure your LMS settings",
     href: "/settings",
     enabled: false,
-    color: "bg-[#000000e6]/10",
-    iconBg: "bg-[#000000e6]/20"
+    color: "bg-lms-yellow/20",
+    iconBg: "bg-lms-yellow/40"
   },
 ];
 
