@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -175,7 +175,7 @@ const TextbookSearch = ({ onSelectTextbook }: TextbookSearchProps) => {
   };
 
   // Automatically search on first load and parameter changes
-  React.useEffect(() => {
+  useEffect(() => {
     searchTextbooks();
   }, [selectedGrade, selectedSubject, searchMode]);
 
@@ -322,8 +322,8 @@ const TextbookSearch = ({ onSelectTextbook }: TextbookSearchProps) => {
 
         <TabsContent value="direct">
           <div className="grid gap-4 mt-2 grid-cols-1">
-            {selectedGrade && selectedSubject && NCERT_PDFs[selectedGrade]?.[selectedSubject] ? (
-              NCERT_PDFs[selectedGrade][selectedSubject].map((resource, index) => (
+            {selectedGrade && selectedSubject && NCERT_PDFS[selectedGrade]?.[selectedSubject] ? (
+              NCERT_PDFS[selectedGrade][selectedSubject].map((resource, index) => (
                 <Card key={index} className={selectedPdf === resource.pdfViewerUrl ? "border-2 border-primary" : ""}>
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -421,8 +421,8 @@ const getMockTextbooks = (grade: string, medium: string, subject: string): Diksh
   const mockBooks: DikshaTextbook[] = [];
   
   // Add direct NCERT PDFs if available
-  if (NCERT_PDFs[grade]?.[subject]) {
-    NCERT_PDFs[grade][subject].forEach((resource, index) => {
+  if (NCERT_PDFS[grade]?.[subject]) {
+    NCERT_PDFS[grade][subject].forEach((resource, index) => {
       if (resource.pdfViewerUrl) {
         mockBooks.push({
           identifier: `ncert-${grade}-${subject}-${index}`,
