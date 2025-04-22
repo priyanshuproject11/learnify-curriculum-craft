@@ -1,14 +1,14 @@
-
 import { useState } from "react";
 import { Curriculum } from "@/types/curriculum";
+import { searchDikshaCourses, convertDikshaCourseToUnit } from "@/services/diksha";
 import Navbar from "@/components/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import DashboardView from "@/components/curriculum/DashboardView";
 import CalendarView from "@/components/curriculum/CalendarView";
 import ProgressView from "@/components/curriculum/ProgressView";
 import { toast } from "sonner";
-import { Book, FileText, Calendar, BarChart, Share2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Book, FileText, Calendar, BarChart, Share2, Download } from "lucide-react";
 
 const Index = () => {
   const [curriculum, setCurriculum] = useState<Curriculum | null>(null);
@@ -31,6 +31,44 @@ const Index = () => {
     toast.success("Curriculum shared with colleagues");
   };
 
+  const handleImportDiksha = async (curriculum: Curriculum | null) => {
+    if (!curriculum) {
+      toast.error("Please create a curriculum first");
+      return;
+    }
+
+    if (curriculum.boardType !== "CBSE") {
+      toast.error("DIKSHA import is only available for CBSE curriculum");
+      return;
+    }
+
+    try {
+      toast.info("Fetching CBSE content from DIKSHA...");
+      const courses = await searchDikshaCourses(
+        "CBSE",
+        curriculum.grade,
+        curriculum.subject
+      );
+
+      if (courses.length === 0) {
+        toast.warning("No matching content found in DIKSHA");
+        return;
+      }
+
+      const units = courses.map(convertDikshaCourseToUnit);
+      const updatedCurriculum = {
+        ...curriculum,
+        units: [...curriculum.units, ...units]
+      };
+
+      handleCurriculumUpdate(updatedCurriculum);
+      toast.success(`Imported ${units.length} units from DIKSHA`);
+    } catch (error) {
+      toast.error("Failed to import DIKSHA content");
+      console.error(error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-lms-blue/10">
       <Navbar />
@@ -48,6 +86,10 @@ const Index = () => {
             <Button variant="outline" className="flex items-center" onClick={handleExportPDF}>
               <FileText className="h-4 w-4 mr-2" />
               Export as PDF
+            </Button>
+            <Button variant="outline" className="flex items-center" onClick={() => handleImportDiksha(curriculum)}>
+              <Download className="h-4 w-4 mr-2" />
+              Import DIKSHA
             </Button>
             <Button variant="outline" className="flex items-center" onClick={handleShare}>
               <Share2 className="h-4 w-4 mr-2" />

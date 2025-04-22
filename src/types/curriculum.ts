@@ -85,3 +85,36 @@ export interface Curriculum {
   timeframe: TimeFrame;
   units: Unit[];
 }
+
+export interface DikshaCourse {
+  identifier: string;
+  name: string;
+  description?: string;
+  subject: string[];
+  gradeLevel: string[];
+  resourceType: string;
+  mediaType: string;
+  mimeType: string;
+  contentType: string;
+  objectType: string;
+  board: string[];
+  medium: string[];
+}
+
+export interface DikshaSearchResponse {
+  id: string;
+  ver: string;
+  ts: string;
+  params: {
+    resmsgid: string;
+    msgid: string;
+    err: string | null;
+    status: string;
+    errmsg: string | null;
+  };
+  responseCode: string;
+  result: {
+    count: number;
+    content: DikshaCourse[];
+  };
+}
