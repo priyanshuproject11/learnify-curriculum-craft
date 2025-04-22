@@ -7,6 +7,7 @@ import { DikshaTextbook } from "@/types/curriculum";
 import { ExternalLink, Grid, LayoutList, Loader2, FileText, Download } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface TextbookSearchProps {
   onSelectTextbook?: (textbook: DikshaTextbook) => void;
@@ -43,22 +44,26 @@ const NCERT_PDFS = {
       {
         title: "Chapter 1: Real Numbers",
         url: "https://ncert.nic.in/textbook/pdf/jemh101.pdf",
-        pages: 18
+        pages: 18,
+        pdfViewerUrl: "https://ncert.nic.in/textbook/pdf/jemh101.pdf"
       },
       {
         title: "Chapter 2: Polynomials",
         url: "https://ncert.nic.in/textbook/pdf/jemh102.pdf",
-        pages: 14
+        pages: 14,
+        pdfViewerUrl: "https://ncert.nic.in/textbook/pdf/jemh102.pdf"
       },
       {
         title: "Chapter 3: Pair of Linear Equations in Two Variables",
         url: "https://ncert.nic.in/textbook/pdf/jemh103.pdf",
-        pages: 24
+        pages: 24,
+        pdfViewerUrl: "https://ncert.nic.in/textbook/pdf/jemh103.pdf"
       },
       {
         title: "Chapter 4: Quadratic Equations",
         url: "https://ncert.nic.in/textbook/pdf/jemh104.pdf",
-        pages: 20
+        pages: 20,
+        pdfViewerUrl: "https://ncert.nic.in/textbook/pdf/jemh104.pdf"
       }
     ],
     "Science": [
@@ -99,6 +104,7 @@ const TextbookSearch = ({ onSelectTextbook }: TextbookSearchProps) => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchMode, setSearchMode] = useState<"api" | "direct">("direct");
   const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   const searchTextbooks = async () => {
     if (!selectedGrade || !selectedMedium || !selectedSubject) {
@@ -169,6 +175,8 @@ const TextbookSearch = ({ onSelectTextbook }: TextbookSearchProps) => {
     
     if (textbook.pdfUrl) {
       setSelectedPdf(textbook.pdfUrl);
+      setPdfLoading(true);
+      console.log("PDF textbook selected:", textbook.pdfUrl);
     } else {
       window.open(`https://diksha.gov.in/play/content/${textbook.identifier}`, "_blank");
     }
@@ -178,6 +186,37 @@ const TextbookSearch = ({ onSelectTextbook }: TextbookSearchProps) => {
   useEffect(() => {
     searchTextbooks();
   }, [selectedGrade, selectedSubject, searchMode]);
+
+  // Helper for PDF embed
+  const PDFViewer = ({ url }: { url: string }) => {
+    const handleIframeLoad = () => {
+      setPdfLoading(false);
+      console.log("PDF textbook loaded:", url);
+    };
+    
+    const handleIframeError = () => {
+      setPdfLoading(false);
+      toast.error("Unable to load PDF directly. Please download it instead.");
+    };
+    
+    return (
+      <div className="relative w-full h-full">
+        {pdfLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="ml-2">Loading PDF...</span>
+          </div>
+        )}
+        <iframe 
+          src={`https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`}
+          className="w-full h-full border-0"
+          onLoad={handleIframeLoad}
+          onError={handleIframeError}
+          title="PDF Viewer"
+        />
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -362,6 +401,7 @@ const TextbookSearch = ({ onSelectTextbook }: TextbookSearchProps) => {
                                 };
                                 onSelectTextbook(textbook);
                                 setSelectedPdf(resource.pdfViewerUrl);
+                                setPdfLoading(true);
                               }
                             }}
                           >
@@ -399,14 +439,9 @@ const TextbookSearch = ({ onSelectTextbook }: TextbookSearchProps) => {
             </Button>
           </div>
           <div className="aspect-[3/4] w-full border rounded overflow-hidden">
-            <iframe 
-              src={selectedPdf} 
-              className="w-full h-full" 
-              title="NCERT Textbook"
-              onError={() => {
-                toast.error("Unable to load PDF directly. Please download it instead.");
-              }}
-            />
+            <ScrollArea className="h-full">
+              <PDFViewer url={selectedPdf} />
+            </ScrollArea>
           </div>
         </div>
       )}
