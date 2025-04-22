@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Unit, Assessment, AssessmentQuestion, FlashCard } from "@/types/curriculum";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { CalendarIcon, Plus, FileText, BookOpen, Magic } from "lucide-react";
+import { CalendarIcon, Plus, FileText, BookOpen, Sparkles } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -113,6 +114,36 @@ const AssessmentEditor = ({ unit, onSave, onCancel }: AssessmentEditorProps) => 
     }
   };
 
+  const handleGenerateQuestions = () => {
+    if (!unit) return;
+    toast.success("Generating sample questions...");
+    // In a real implementation, this would call an AI service to generate questions
+    // For now, we'll add a few sample questions
+    const sampleQuestions: AssessmentQuestion[] = [
+      {
+        id: uuidv4(),
+        question: "What is the main concept covered in this unit?",
+        type: "Multiple Choice",
+        options: [
+          "Concept A",
+          "Concept B",
+          "Concept C",
+          "Concept D"
+        ],
+        correctAnswer: "Concept A",
+        points: 5
+      },
+      {
+        id: uuidv4(),
+        question: "Explain the importance of this topic in your own words.",
+        type: "Essay",
+        points: 10
+      }
+    ];
+    
+    setQuestions(prev => [...prev, ...sampleQuestions]);
+  };
+
   const handleAddQuestion = () => {
     if (!currentQuestion) return;
     
@@ -171,7 +202,7 @@ const AssessmentEditor = ({ unit, onSave, onCancel }: AssessmentEditorProps) => 
           onClick={handleGenerateContent}
           disabled={isGenerating}
         >
-          <Magic className="h-4 w-4 mr-2" />
+          <Sparkles className="h-4 w-4 mr-2" />
           {isGenerating ? "Generating..." : "Generate Sample Content"}
         </Button>
       </div>
@@ -189,7 +220,10 @@ const AssessmentEditor = ({ unit, onSave, onCancel }: AssessmentEditorProps) => 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label htmlFor="assessment-type">Assessment Type</Label>
-          <Select value={type} onValueChange={setType}>
+          <Select 
+            value={type} 
+            onValueChange={(value: Assessment["type"]) => setType(value)}
+          >
             <SelectTrigger id="assessment-type">
               <SelectValue placeholder="Select assessment type" />
             </SelectTrigger>
@@ -313,7 +347,10 @@ const AssessmentEditor = ({ unit, onSave, onCancel }: AssessmentEditorProps) => 
             <div className="space-y-3">
               <div className="grid grid-cols-12 gap-2">
                 <div className="col-span-3">
-                  <Select value={currentQuestionType} onValueChange={setCurrentQuestionType}>
+                  <Select 
+                    value={currentQuestionType} 
+                    onValueChange={(value: AssessmentQuestion["type"]) => setCurrentQuestionType(value)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Question type" />
                     </SelectTrigger>

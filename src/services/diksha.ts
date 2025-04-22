@@ -1,4 +1,6 @@
 
+import { DikshaCourse, DikshaSearchResponse, Unit } from "@/types/curriculum";
+
 const DIKSHA_BASE_URL = 'https://diksha.gov.in/api';
 
 export const searchDikshaCourses = async (
@@ -55,4 +57,3 @@ export const convertDikshaCourseToUnit = (course: DikshaCourse): Unit => {
     estimatedTime: '2 weeks'
   };
 };
-
