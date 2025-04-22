@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,21 @@ import { DikshaTextbook } from "@/types/curriculum";
 import { ExternalLink, Grid, LayoutList, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-const GRADES = Array.from({ length: 12 }, (_, i) => `Class ${i + 1}`);
+const GRADES = [
+  { value: "Class 1", label: "Class 1" },
+  { value: "Class 2", label: "Class 2" },
+  { value: "Class 3", label: "Class 3" },
+  { value: "Class 4", label: "Class 4" },
+  { value: "Class 5", label: "Class 5" },
+  { value: "Class 6", label: "Class 6" },
+  { value: "Class 7", label: "Class 7" },
+  { value: "Class 8", label: "Class 8" },
+  { value: "Class 9", label: "Class 9" },
+  { value: "Class 10", label: "Class 10" },
+  { value: "Class 11", label: "Class 11" },
+  { value: "Class 12", label: "Class 12" }
+];
+
 const MEDIUMS = ["English", "Hindi"];
 const SUBJECTS = ["Mathematics", "Science", "Social Studies", "English", "Hindi"];
 
@@ -27,6 +40,8 @@ const TextbookSearch = () => {
 
     setIsLoading(true);
     try {
+      console.log(`Searching for ${selectedGrade}, ${selectedMedium}, ${selectedSubject}`);
+      
       const response = await fetch("https://diksha.gov.in/api/composite/v3/search", {
         method: "POST",
         headers: {
@@ -51,23 +66,25 @@ const TextbookSearch = () => {
       }
 
       const data = await response.json();
-      setTextbooks(data.result.content);
+      console.log("API response:", data);
+      setTextbooks(data.result.content || []);
       
-      if (data.result.content.length === 0) {
+      if (!data.result.content || data.result.content.length === 0) {
         toast.info("No textbooks found for the selected criteria");
       }
     } catch (error) {
       console.error("Error fetching textbooks:", error);
       toast.error("Failed to fetch textbooks. Using mock data.");
-      // Fallback to mock data
-      setTextbooks(getMockTextbooks());
+      setTextbooks(getMockTextbooks(selectedGrade, selectedMedium, selectedSubject));
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleOpenTextbook = (identifier: string) => {
-    window.open(`https://diksha.gov.in/play/content/${identifier}`, "_blank");
+    const url = `https://diksha.gov.in/play/content/${identifier}`;
+    console.log(`Opening textbook: ${url}`);
+    window.open(url, "_blank");
   };
 
   return (
@@ -79,8 +96,8 @@ const TextbookSearch = () => {
           </SelectTrigger>
           <SelectContent>
             {GRADES.map((grade) => (
-              <SelectItem key={grade} value={grade}>
-                {grade}
+              <SelectItem key={grade.value} value={grade.value}>
+                {grade.label}
               </SelectItem>
             ))}
           </SelectContent>
@@ -155,7 +172,7 @@ const TextbookSearch = () => {
                   <div>
                     <CardTitle className="line-clamp-2">{textbook.name}</CardTitle>
                     <CardDescription>
-                      {textbook.subject.join(", ")} | {textbook.medium.join(", ")}
+                      {textbook.subject?.join(", ") || ""} | {textbook.medium?.join(", ") || ""}
                     </CardDescription>
                   </div>
                   {textbook.appIcon && (
@@ -171,6 +188,13 @@ const TextbookSearch = () => {
                 <p className="text-sm text-gray-600 line-clamp-3">
                   {textbook.description || "No description available"}
                 </p>
+                {textbook.gradeLevel && (
+                  <div className="mt-2">
+                    <span className="text-xs font-medium text-gray-500">
+                      Grade: {textbook.gradeLevel.join(", ")}
+                    </span>
+                  </div>
+                )}
               </CardContent>
               <CardFooter>
                 <Button 
@@ -197,28 +221,33 @@ const TextbookSearch = () => {
   );
 };
 
-// Mock data for testing and fallback
-const getMockTextbooks = (): DikshaTextbook[] => [
-  {
-    identifier: "do_1234567890",
-    name: "NCERT Science Textbook for Class 6",
-    description: "Complete science curriculum covering physics, chemistry and biology concepts for Class 6 students following CBSE curriculum.",
-    appIcon: "https://via.placeholder.com/150",
-    medium: ["English"],
-    subject: ["Science"],
-    gradeLevel: ["Class 6"],
-    board: ["CBSE"]
-  },
-  {
-    identifier: "do_0987654321",
-    name: "NCERT Mathematics Textbook for Class 6",
-    description: "Comprehensive mathematics textbook covering arithmetic, algebra, geometry and more for Class 6 CBSE students.",
-    appIcon: "https://via.placeholder.com/150",
-    medium: ["English"],
-    subject: ["Mathematics"],
-    gradeLevel: ["Class 6"],
-    board: ["CBSE"]
-  }
-];
+const getMockTextbooks = (grade: string, medium: string, subject: string): DikshaTextbook[] => {
+  console.log(`Generating mock data for grade: ${grade}, medium: ${medium}, subject: ${subject}`);
+  
+  const mockCourses: DikshaTextbook[] = [
+    {
+      identifier: `diksha-CBSE-${grade}-${subject}-001`,
+      name: `NCERT ${subject} Textbook for ${grade}`,
+      description: `Complete ${subject} curriculum covering core concepts for ${grade} students following CBSE curriculum.`,
+      appIcon: "https://via.placeholder.com/150",
+      medium: [medium],
+      subject: [subject],
+      gradeLevel: [grade],
+      board: ["CBSE"]
+    },
+    {
+      identifier: `diksha-CBSE-${grade}-${subject}-002`,
+      name: `Advanced ${subject} for ${grade}`,
+      description: `Advanced topics in ${subject} for ${grade} students who have mastered the fundamentals.`,
+      appIcon: "https://via.placeholder.com/150",
+      medium: [medium],
+      subject: [subject],
+      gradeLevel: [grade],
+      board: ["CBSE"]
+    }
+  ];
+  
+  return mockCourses;
+};
 
 export default TextbookSearch;
