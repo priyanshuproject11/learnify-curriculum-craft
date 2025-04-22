@@ -16,9 +16,9 @@ const features = [
   {
     title: "Resources",
     icon: <FileText className="h-8 w-8" />,
-    description: "Manage teaching materials and resources",
+    description: "Access textbooks and AI tutoring",
     href: "/resources",
-    enabled: false,
+    enabled: true, // Changed from false to true
     color: "bg-lms-green/20",
     iconBg: "bg-lms-green/40"
   },
