@@ -7,9 +7,23 @@ import { DikshaTextbook } from "@/types/curriculum";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Brain } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import PDFViewer from "@/components/textbook/PDFViewer";
 
 const Resources = () => {
   const [selectedTextbook, setSelectedTextbook] = useState<DikshaTextbook | null>(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
+  const handleTextbookSelect = (textbook: DikshaTextbook) => {
+    setSelectedTextbook(textbook);
+    
+    // If the textbook has a PDF URL, set it for the viewer
+    if (textbook.pdfUrl) {
+      setPdfUrl(textbook.pdfUrl);
+    } else {
+      setPdfUrl(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-lms-blue/10">
@@ -33,7 +47,34 @@ const Resources = () => {
           <TabsContent value="textbooks">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
-                <TextbookSearch onSelectTextbook={setSelectedTextbook} />
+                <TextbookSearch onSelectTextbook={handleTextbookSelect} />
+                
+                {pdfUrl && (
+                  <div className="mt-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-medium">PDF Viewer</h3>
+                      <div className="flex gap-2">
+                        <button 
+                          className="text-sm text-blue-500 hover:underline"
+                          onClick={() => window.open(pdfUrl, "_blank")}
+                        >
+                          Open in New Tab
+                        </button>
+                        <button 
+                          className="text-sm text-gray-500 hover:underline"
+                          onClick={() => setPdfUrl(null)}
+                        >
+                          Close Viewer
+                        </button>
+                      </div>
+                    </div>
+                    <div className="aspect-[3/4] w-full border rounded overflow-hidden p-4 bg-white">
+                      <ScrollArea className="h-full">
+                        <PDFViewer url={pdfUrl} />
+                      </ScrollArea>
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div className="lg:col-span-1">
