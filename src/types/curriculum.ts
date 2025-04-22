@@ -1,4 +1,3 @@
-
 export type BoardType = "CBSE" | "ICSE" | "IB" | "State Board" | "Other";
 
 export type Grade = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12";
@@ -92,11 +91,11 @@ export interface DikshaTextbook {
   name: string;
   description?: string;
   appIcon?: string;
-  medium: string[];
-  subject: string[];
-  gradeLevel: string[];
-  board: string[];
-  pdfUrl?: string; // Added for direct PDF access
+  medium?: string[];
+  subject?: string[];
+  gradeLevel?: string[];
+  board?: string[];
+  pdfUrl?: string; // Added for direct PDF viewing
 }
 
 export interface DikshaTextbookResponse {
