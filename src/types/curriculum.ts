@@ -98,7 +98,7 @@ export interface DikshaCourse {
   contentType: string;
   objectType: string;
   board: string[];
-  medium: string[];
+  medium?: string[];
 }
 
 export interface DikshaSearchResponse {

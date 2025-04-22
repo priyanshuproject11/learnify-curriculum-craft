@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Curriculum } from "@/types/curriculum";
 import { searchDikshaCourses, convertDikshaCourseToUnit } from "@/services/diksha";
@@ -13,6 +14,7 @@ import { Book, FileText, Calendar, BarChart, Share2, Download } from "lucide-rea
 const Index = () => {
   const [curriculum, setCurriculum] = useState<Curriculum | null>(null);
   const [activeView, setActiveView] = useState<string>("dashboard");
+  const [isImporting, setIsImporting] = useState<boolean>(false);
 
   const handleCurriculumCreate = (newCurriculum: Curriculum) => {
     setCurriculum(newCurriculum);
@@ -43,7 +45,9 @@ const Index = () => {
     }
 
     try {
+      setIsImporting(true);
       toast.info("Fetching CBSE content from DIKSHA...");
+      
       const courses = await searchDikshaCourses(
         "CBSE",
         curriculum.grade,
@@ -52,6 +56,7 @@ const Index = () => {
 
       if (courses.length === 0) {
         toast.warning("No matching content found in DIKSHA");
+        setIsImporting(false);
         return;
       }
 
@@ -64,8 +69,10 @@ const Index = () => {
       handleCurriculumUpdate(updatedCurriculum);
       toast.success(`Imported ${units.length} units from DIKSHA`);
     } catch (error) {
-      toast.error("Failed to import DIKSHA content");
-      console.error(error);
+      console.error("Import error:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to import DIKSHA content");
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -87,9 +94,14 @@ const Index = () => {
               <FileText className="h-4 w-4 mr-2" />
               Export as PDF
             </Button>
-            <Button variant="outline" className="flex items-center" onClick={() => handleImportDiksha(curriculum)}>
+            <Button 
+              variant="outline" 
+              className="flex items-center" 
+              onClick={() => handleImportDiksha(curriculum)}
+              disabled={isImporting || !curriculum}
+            >
               <Download className="h-4 w-4 mr-2" />
-              Import DIKSHA
+              {isImporting ? "Importing..." : "Import DIKSHA"}
             </Button>
             <Button variant="outline" className="flex items-center" onClick={handleShare}>
               <Share2 className="h-4 w-4 mr-2" />
