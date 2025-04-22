@@ -20,28 +20,29 @@ const Resources = () => {
     <div className="min-h-screen bg-gradient-to-br from-white to-lms-blue/10">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-4 py-2">
         {!selectedTextbook ? (
           <>
-            <h1 className="text-2xl font-bold mb-4">NCERT Resources</h1>
+            <h1 className="text-xl font-medium mb-3">NCERT Resources</h1>
             <TextbookSearch onSelectTextbook={handleTextbookSelect} />
           </>
         ) : (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-4">
               <Button 
                 variant="ghost" 
                 onClick={() => setSelectedTextbook(null)}
-                className="mb-2"
+                size="sm"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Resources
+                Back
               </Button>
-              <h2 className="text-lg font-medium">{selectedTextbook.name}</h2>
+              <h2 className="text-lg font-medium truncate">{selectedTextbook.name}</h2>
             </div>
 
-            <div className="grid grid-cols-2 gap-6 h-[calc(100vh-12rem)]">
-              <div className="bg-white rounded-lg shadow-sm">
+            <div className="grid grid-cols-5 gap-4 h-[calc(100vh-8rem)]">
+              {/* PDF Viewer - 2/5 width */}
+              <div className="col-span-2 bg-white rounded-lg shadow-sm">
                 <ScrollArea className="h-full">
                   {selectedTextbook.pdfUrl && (
                     <PDFViewer url={selectedTextbook.pdfUrl} />
@@ -49,8 +50,9 @@ const Resources = () => {
                 </ScrollArea>
               </div>
               
-              <div className="bg-white rounded-lg shadow-sm">
-                <ScrollArea className="h-full p-4">
+              {/* AI Tutor - 3/5 width */}
+              <div className="col-span-3 bg-white rounded-lg shadow-sm">
+                <ScrollArea className="h-full">
                   <AITutor textbook={selectedTextbook} />
                 </ScrollArea>
               </div>
