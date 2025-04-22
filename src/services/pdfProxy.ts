@@ -1,49 +1,91 @@
-
 /**
  * PDF Proxy Service
  * 
  * This service helps fetch external PDFs that might have CORS restrictions 
- * by using a CORS proxy or direct fetch with appropriate headers
+ * by using multiple proxy strategies and fallback mechanisms
  */
 
-// Use a CORS proxy to avoid CORS issues with external PDFs
-const CORS_PROXY = "https://corsproxy.io/?";
+// Available CORS proxies (will try in order until one works)
+const CORS_PROXIES = [
+  "https://corsproxy.io/?",
+  "https://api.allorigins.win/raw?url=",
+  "https://cors-anywhere.herokuapp.com/",
+];
 
 /**
- * Fetch PDF from URL using CORS proxy
+ * Try multiple fetch strategies to get a PDF
  * @param url Original PDF URL
  * @returns Blob URL that can be used in the PDF viewer
  */
 export const fetchPdfWithProxy = async (url: string): Promise<string> => {
+  console.log(`Attempting to fetch PDF from: ${url}`);
+  
+  // Strategy 1: Try direct fetch first (may work for some URLs)
   try {
-    console.log(`Attempting to fetch PDF from: ${url}`);
-    
-    // Use CORS proxy to fetch the PDF
-    const response = await fetch(`${CORS_PROXY}${encodeURIComponent(url)}`, {
+    const directResponse = await fetch(url, {
       method: "GET",
       headers: {
         "Accept": "application/pdf",
       },
+      mode: "no-cors", // Try with no-cors first
     });
     
-    if (!response.ok) {
-      throw new Error(`Failed to fetch PDF: ${response.status} ${response.statusText}`);
+    if (directResponse.type !== 'opaque') {
+      const blob = await directResponse.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      console.log("PDF successfully fetched directly");
+      return blobUrl;
     }
-    
-    // Get the PDF as blob and create a local URL
-    const pdfBlob = await response.blob();
-    const pdfBlobUrl = URL.createObjectURL(pdfBlob);
-    
-    console.log("PDF successfully fetched and converted to blob URL");
-    return pdfBlobUrl;
   } catch (error) {
-    console.error("Error fetching PDF:", error);
-    throw error;
+    console.log("Direct fetch failed, trying proxies...");
+  }
+  
+  // Strategy 2: Try each proxy in order
+  for (const proxy of CORS_PROXIES) {
+    try {
+      const proxyUrl = `${proxy}${encodeURIComponent(url)}`;
+      console.log(`Trying proxy: ${proxy}`);
+      
+      const response = await fetch(proxyUrl, {
+        method: "GET",
+        headers: {
+          "Accept": "application/pdf",
+        },
+      });
+      
+      if (response.ok) {
+        const pdfBlob = await response.blob();
+        const pdfBlobUrl = URL.createObjectURL(pdfBlob);
+        console.log(`PDF successfully fetched via proxy: ${proxy}`);
+        return pdfBlobUrl;
+      }
+    } catch (error) {
+      console.log(`Proxy ${proxy} failed, trying next...`);
+    }
+  }
+  
+  // Strategy 3: Server-side proxy simulation for demonstration
+  // In a real app, this would call your backend endpoint
+  try {
+    // For demo purposes, we'll use a public PDF viewing service
+    // This simulates what a backend proxy would do
+    const googleDocsViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+    console.log("All proxies failed, returning Google Docs viewer URL");
+    
+    // In a real implementation, this would return a blob from your own server
+    // For now, we'll return the Google Docs viewer URL which can display PDFs
+    return googleDocsViewerUrl;
+  } catch (error) {
+    console.error("All PDF fetching strategies failed:", error);
+    throw new Error("Failed to fetch PDF after trying multiple strategies");
   }
 };
 
 // NCERT PDF base URL
 export const NCERT_BASE_URL = "https://ncert.nic.in/textbook/pdf/";
+
+// Backup URLs for when NCERT direct links fail
+export const NCERT_BACKUP_URL = "https://eunectic-data-pdf.s3.ap-south-1.amazonaws.com/"
 
 // Map of properly working NCERT PDFs
 export const NCERT_WORKING_PDFS = {
@@ -106,4 +148,17 @@ export const NCERT_WORKING_PDFS = {
   }
 };
 
-// You can add more classes and subjects as needed
+// Alternative method to get PDF URL with fallbacks
+export const getReliablePdfUrl = (pdfUrl: string): string => {
+  // If it's an NCERT URL, provide alternatives
+  if (pdfUrl.includes(NCERT_BASE_URL)) {
+    const pdfFilename = pdfUrl.split('/').pop();
+    if (pdfFilename) {
+      // Try a different source for the same PDF
+      return `${NCERT_BACKUP_URL}${pdfFilename}`;
+    }
+  }
+  
+  // Return original URL if no alternative available
+  return pdfUrl;
+};

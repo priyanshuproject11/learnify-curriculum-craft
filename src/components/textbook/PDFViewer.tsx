@@ -1,11 +1,11 @@
 
 import React, { useState, useCallback, useEffect } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
-import { Loader2, ZoomIn, ZoomOut } from "lucide-react";
+import { Loader2, ZoomIn, ZoomOut, RefreshCw, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { fetchPdfWithProxy } from "@/services/pdfProxy";
+import { fetchPdfWithProxy, getReliablePdfUrl } from "@/services/pdfProxy";
 
 // Initialize PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
@@ -22,6 +22,8 @@ const PDFViewer = ({ url, onClose }: PDFViewerProps) => {
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.0);
   const [pdfError, setPdfError] = useState<boolean>(false);
+  const [fetchAttempt, setFetchAttempt] = useState<number>(0);
+  const [isGoogleDocsViewer, setIsGoogleDocsViewer] = useState<boolean>(false);
 
   // Function to load the PDF through the proxy
   const loadPdfWithProxy = useCallback(async () => {
@@ -29,20 +31,45 @@ const PDFViewer = ({ url, onClose }: PDFViewerProps) => {
     
     setPdfLoading(true);
     setPdfError(false);
+    setIsGoogleDocsViewer(false);
     
     try {
-      // Try to fetch the PDF through our proxy
-      const proxiedUrl = await fetchPdfWithProxy(url);
+      // First try with the primary URL
+      let proxiedUrl: string;
+      
+      if (fetchAttempt === 0) {
+        // First attempt - try regular URL
+        proxiedUrl = await fetchPdfWithProxy(url);
+      } else {
+        // Fallback - try alternative source URL
+        const alternativeUrl = getReliablePdfUrl(url);
+        console.log(`Retry attempt ${fetchAttempt} using alternative URL: ${alternativeUrl}`);
+        proxiedUrl = await fetchPdfWithProxy(alternativeUrl);
+      }
+      
+      // Check if we got a Google Docs viewer URL (our fallback)
+      if (proxiedUrl.includes('docs.google.com/viewer')) {
+        setIsGoogleDocsViewer(true);
+      }
+      
       setPdfUrl(proxiedUrl);
-      console.log("Successfully loaded PDF through proxy");
+      console.log("Successfully loaded PDF");
+      
+      // Clear loading state after successful load
+      if (isGoogleDocsViewer) {
+        setPdfLoading(false);
+      }
+      
     } catch (error) {
       console.error("Failed to load PDF with proxy:", error);
       setPdfError(true);
       toast.error("Failed to load PDF. Please try the external viewer.");
     } finally {
-      setPdfLoading(false);
+      if (!isGoogleDocsViewer) {
+        setPdfLoading(false);
+      }
     }
-  }, [url]);
+  }, [url, fetchAttempt, isGoogleDocsViewer]);
 
   // Load the PDF when the component mounts or URL changes
   useEffect(() => {
@@ -54,7 +81,7 @@ const PDFViewer = ({ url, onClose }: PDFViewerProps) => {
         URL.revokeObjectURL(pdfUrl);
       }
     };
-  }, [url, loadPdfWithProxy]);
+  }, [url, fetchAttempt, loadPdfWithProxy]);
 
   // Function to handle document load success
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
@@ -69,7 +96,14 @@ const PDFViewer = ({ url, onClose }: PDFViewerProps) => {
     console.error("Error loading PDF:", error);
     setPdfLoading(false);
     setPdfError(true);
-    toast.error("Unable to load PDF. Try using the external viewer.");
+    
+    // Try alternating fetch strategy if first attempt failed
+    if (fetchAttempt === 0) {
+      toast.info("First loading strategy failed, trying alternative...");
+      setFetchAttempt(1);
+    } else {
+      toast.error("Unable to load PDF. Try using the external viewer.");
+    }
   }
 
   // Functions to navigate between pages
@@ -92,6 +126,8 @@ const PDFViewer = ({ url, onClose }: PDFViewerProps) => {
 
   // Function to retry loading the PDF
   const handleRetry = () => {
+    // Reset the fetch attempt counter and try again
+    setFetchAttempt(0);
     loadPdfWithProxy();
   };
 
@@ -101,8 +137,8 @@ const PDFViewer = ({ url, onClose }: PDFViewerProps) => {
   };
 
   return (
-    <div className="flex flex-col items-center">
-      {pdfLoading && (
+    <div className="flex flex-col items-center w-full">
+      {pdfLoading && !isGoogleDocsViewer && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <span className="ml-2">Loading PDF...</span>
@@ -118,12 +154,14 @@ const PDFViewer = ({ url, onClose }: PDFViewerProps) => {
               variant="outline"
               className="mb-2"
             >
+              <RefreshCw className="mr-2 h-4 w-4" /> 
               Retry Loading
             </Button>
             <Button 
               onClick={openExternalViewer}
               className="mb-2"
             >
+              <ExternalLink className="mr-2 h-4 w-4" />
               Open in New Tab
             </Button>
           </div>
@@ -132,10 +170,19 @@ const PDFViewer = ({ url, onClose }: PDFViewerProps) => {
             You can try again or open it in a new tab instead.
           </p>
         </div>
+      ) : isGoogleDocsViewer && pdfUrl ? (
+        <div className="w-full aspect-[3/4] border rounded">
+          <iframe 
+            src={pdfUrl}
+            className="w-full h-full"
+            title="PDF Viewer"
+            frameBorder="0"
+          />
+        </div>
       ) : (
         <>
           <div className="border rounded mb-4 p-2 w-full">
-            {pdfUrl && (
+            {pdfUrl && !isGoogleDocsViewer && (
               <Document
                 file={pdfUrl}
                 onLoadSuccess={onDocumentLoadSuccess}
@@ -157,7 +204,7 @@ const PDFViewer = ({ url, onClose }: PDFViewerProps) => {
             )}
           </div>
           
-          {numPages && (
+          {numPages && !isGoogleDocsViewer && (
             <div className="flex items-center justify-between w-full">
               <div className="space-x-2">
                 <Button
