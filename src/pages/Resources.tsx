@@ -4,6 +4,8 @@ import Navbar from "@/components/Navbar";
 import TextbookSearch from "@/components/textbook/TextbookSearch";
 import AITutor from "@/components/textbook/AITutor";
 import { DikshaTextbook } from "@/types/curriculum";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Brain } from "lucide-react";
 
 const Resources = () => {
   const [selectedTextbook, setSelectedTextbook] = useState<DikshaTextbook | null>(null);
@@ -25,11 +27,19 @@ const Resources = () => {
             <TextbookSearch onSelectTextbook={setSelectedTextbook} />
           </div>
           
-          {selectedTextbook && (
-            <div className="lg:col-span-1">
+          <div className="lg:col-span-1">
+            {selectedTextbook ? (
               <AITutor textbook={selectedTextbook} />
-            </div>
-          )}
+            ) : (
+              <Alert>
+                <Brain className="h-4 w-4" />
+                <AlertTitle>Select a textbook to start</AlertTitle>
+                <AlertDescription>
+                  Choose a textbook from the list to begin your personalized learning experience with AI tutoring support.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -37,3 +47,4 @@ const Resources = () => {
 };
 
 export default Resources;
+
