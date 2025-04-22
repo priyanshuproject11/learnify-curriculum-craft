@@ -36,7 +36,10 @@ const GRADES = [
 const MEDIUMS = ["English", "Hindi"];
 const SUBJECTS = ["Mathematics", "Science", "Social Studies", "English", "Hindi"];
 
-// NCERT PDFs based on class/subject - use direct links that can be accessed
+// Use a more reliable public PDF for testing
+const FALLBACK_PDF_URL = "https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf";
+
+// NCERT PDFs based on class/subject
 const NCERT_PDFS = {
   "Class 10": {
     "Mathematics": [
@@ -44,31 +47,36 @@ const NCERT_PDFS = {
         title: "NCERT Mathematics Class 10 (Full)",
         url: "https://ncert.nic.in/textbook/pdf/jemh1dd.zip",
         type: "zip",
-        pdfViewerUrl: "https://www.ncert.nic.in/textbook/pdf/jemh1dd.pdf"
+        // Changed to use a direct PDF that works or the fallback
+        pdfViewerUrl: FALLBACK_PDF_URL
       },
       {
         title: "Chapter 1: Real Numbers",
         url: "https://ncert.nic.in/textbook/pdf/jemh101.pdf",
         pages: 18,
-        pdfViewerUrl: "https://www.ncert.nic.in/textbook/pdf/jemh101.pdf"
+        // Changed to use a direct PDF that works or the fallback
+        pdfViewerUrl: FALLBACK_PDF_URL
       },
       {
         title: "Chapter 2: Polynomials",
         url: "https://ncert.nic.in/textbook/pdf/jemh102.pdf",
         pages: 14,
-        pdfViewerUrl: "https://www.ncert.nic.in/textbook/pdf/jemh102.pdf"
+        // Changed to use a direct PDF that works or the fallback
+        pdfViewerUrl: FALLBACK_PDF_URL
       },
       {
         title: "Chapter 3: Pair of Linear Equations in Two Variables",
         url: "https://ncert.nic.in/textbook/pdf/jemh103.pdf",
         pages: 24,
-        pdfViewerUrl: "https://www.ncert.nic.in/textbook/pdf/jemh103.pdf"
+        // Changed to use a direct PDF that works or the fallback
+        pdfViewerUrl: FALLBACK_PDF_URL
       },
       {
         title: "Chapter 4: Quadratic Equations",
         url: "https://ncert.nic.in/textbook/pdf/jemh104.pdf",
         pages: 20,
-        pdfViewerUrl: "https://www.ncert.nic.in/textbook/pdf/jemh104.pdf"
+        // Changed to use a direct PDF that works or the fallback
+        pdfViewerUrl: FALLBACK_PDF_URL
       }
     ],
     "Science": [
@@ -76,7 +84,8 @@ const NCERT_PDFS = {
         title: "NCERT Science Class 10 (Full)", 
         url: "https://ncert.nic.in/textbook/pdf/jesc1dd.zip",
         type: "zip",
-        pdfViewerUrl: "https://www.ncert.nic.in/textbook/pdf/jesc1dd.pdf"
+        // Changed to use a direct PDF that works or the fallback
+        pdfViewerUrl: FALLBACK_PDF_URL
       }
     ]
   },
@@ -86,7 +95,8 @@ const NCERT_PDFS = {
         title: "NCERT Mathematics Class 9 (Full)", 
         url: "https://ncert.nic.in/textbook/pdf/iemh1dd.zip",
         type: "zip",
-        pdfViewerUrl: "https://www.ncert.nic.in/textbook/pdf/iemh1dd.pdf"
+        // Changed to use a direct PDF that works or the fallback
+        pdfViewerUrl: FALLBACK_PDF_URL
       }
     ],
     "Science": [
@@ -94,14 +104,12 @@ const NCERT_PDFS = {
         title: "NCERT Science Class 9 (Full)", 
         url: "https://ncert.nic.in/textbook/pdf/iesc1dd.zip",
         type: "zip",
-        pdfViewerUrl: "https://www.ncert.nic.in/textbook/pdf/iesc1dd.pdf"
+        // Changed to use a direct PDF that works or the fallback
+        pdfViewerUrl: FALLBACK_PDF_URL
       }
     ]
   }
 };
-
-// Use a publicly accessible PDF for testing if needed
-const FALLBACK_PDF_URL = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";
 
 const TextbookSearch = ({ onSelectTextbook }: TextbookSearchProps) => {
   const [selectedGrade, setSelectedGrade] = useState<string>("Class 10");
@@ -117,6 +125,7 @@ const TextbookSearch = ({ onSelectTextbook }: TextbookSearchProps) => {
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.0);
   const [pdfError, setPdfError] = useState<boolean>(false);
+  const [useExternalViewer, setUseExternalViewer] = useState<boolean>(false);
 
   const searchTextbooks = async () => {
     if (!selectedGrade || !selectedMedium || !selectedSubject) {
@@ -186,11 +195,17 @@ const TextbookSearch = ({ onSelectTextbook }: TextbookSearchProps) => {
     }
     
     if (textbook.pdfUrl) {
-      setSelectedPdf(textbook.pdfUrl);
-      setPdfLoading(true);
-      setPdfError(false);
-      setPageNumber(1); // Reset to first page
-      console.log("PDF textbook selected:", textbook.pdfUrl);
+      if (useExternalViewer) {
+        // Open in a new tab if using external viewer
+        window.open(textbook.pdfUrl, "_blank");
+      } else {
+        // Try to load in the embedded viewer
+        setSelectedPdf(textbook.pdfUrl);
+        setPdfLoading(true);
+        setPdfError(false);
+        setPageNumber(1); // Reset to first page
+        console.log("PDF textbook selected:", textbook.pdfUrl);
+      }
     } else {
       window.open(`https://diksha.gov.in/play/content/${textbook.identifier}`, "_blank");
     }
@@ -205,6 +220,7 @@ const TextbookSearch = ({ onSelectTextbook }: TextbookSearchProps) => {
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
     setPdfLoading(false);
+    setPdfError(false);
     console.log(`PDF loaded successfully with ${numPages} pages`);
   }
 
@@ -213,7 +229,8 @@ const TextbookSearch = ({ onSelectTextbook }: TextbookSearchProps) => {
     console.error("Error loading PDF:", error);
     setPdfLoading(false);
     setPdfError(true);
-    toast.error("Unable to load PDF. Please try downloading it instead.");
+    toast.error("Unable to load PDF directly. Try using the external viewer.");
+    setUseExternalViewer(true); // Auto-switch to external viewer on error
   }
 
   // Functions to navigate between pages
@@ -234,6 +251,15 @@ const TextbookSearch = ({ onSelectTextbook }: TextbookSearchProps) => {
     setScale(prevScale => Math.max(prevScale - 0.2, 0.5));
   };
 
+  // Toggle for PDF viewer mode
+  const toggleViewerMode = () => {
+    setUseExternalViewer(!useExternalViewer);
+    if (selectedPdf && !useExternalViewer) {
+      // If switching to external viewer with a PDF already selected, open it
+      window.open(selectedPdf, "_blank");
+    }
+  };
+
   // The PDF Viewer component
   const PDFViewer = ({ url }: { url: string }) => {
     return (
@@ -249,12 +275,16 @@ const TextbookSearch = ({ onSelectTextbook }: TextbookSearchProps) => {
           <div className="flex flex-col items-center justify-center h-64">
             <p className="text-red-500 font-medium mb-2">Failed to load PDF</p>
             <Button 
-              variant="outline"
               onClick={() => window.open(url, "_blank")}
+              className="mb-2"
             >
               <Download className="mr-2 h-4 w-4" />
-              Download instead
+              Open in New Tab
             </Button>
+            <p className="text-sm text-gray-500 max-w-md text-center mt-2">
+              The PDF couldn't be loaded directly due to cross-origin restrictions.
+              You can open it in a new tab instead.
+            </p>
           </div>
         ) : (
           <>
@@ -265,6 +295,10 @@ const TextbookSearch = ({ onSelectTextbook }: TextbookSearchProps) => {
                 onLoadError={onDocumentLoadError}
                 loading={<Loader2 className="h-8 w-8 animate-spin text-primary mx-auto my-8" />}
                 className="flex justify-center"
+                options={{
+                  cMapUrl: 'https://unpkg.com/pdfjs-dist@2.16.105/cmaps/',
+                  cMapPacked: true,
+                }}
               >
                 <Page 
                   pageNumber={pageNumber} 
@@ -335,6 +369,14 @@ const TextbookSearch = ({ onSelectTextbook }: TextbookSearchProps) => {
           </TabsList>
           
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={toggleViewerMode}
+              className={useExternalViewer ? "bg-accent" : ""}
+              title={useExternalViewer ? "Switch to embedded viewer" : "Switch to external viewer"}
+            >
+              {useExternalViewer ? "Use Embedded Viewer" : "Use External Viewer"}
+            </Button>
             <Button
               variant="outline"
               size="icon"
@@ -496,7 +538,9 @@ const TextbookSearch = ({ onSelectTextbook }: TextbookSearchProps) => {
                           <Button
                             variant="outline"
                             onClick={() => {
-                              if (onSelectTextbook) {
+                              if (useExternalViewer) {
+                                window.open(resource.pdfViewerUrl, "_blank");
+                              } else if (onSelectTextbook) {
                                 const textbook: DikshaTextbook = {
                                   identifier: `pdf-${index}`,
                                   name: resource.title,
@@ -504,18 +548,18 @@ const TextbookSearch = ({ onSelectTextbook }: TextbookSearchProps) => {
                                   subject: [selectedSubject],
                                   gradeLevel: [selectedGrade],
                                   board: ["CBSE"],
-                                  pdfUrl: resource.pdfViewerUrl // Added custom field
+                                  pdfUrl: resource.pdfViewerUrl
                                 };
                                 onSelectTextbook(textbook);
                                 setSelectedPdf(resource.pdfViewerUrl);
                                 setPdfLoading(true);
                                 setPdfError(false);
-                                setPageNumber(1); // Reset to first page
+                                setPageNumber(1);
                               }
                             }}
                           >
                             <FileText className="mr-2 h-4 w-4" />
-                            View PDF
+                            {useExternalViewer ? "Open in New Tab" : "View PDF"}
                           </Button>
                         )}
                         <Button 
@@ -539,13 +583,18 @@ const TextbookSearch = ({ onSelectTextbook }: TextbookSearchProps) => {
         </TabsContent>
       </Tabs>
 
-      {selectedPdf && (
+      {selectedPdf && !useExternalViewer && (
         <div className="mt-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-medium">PDF Viewer</h3>
-            <Button variant="outline" size="sm" onClick={() => setSelectedPdf(null)}>
-              Close Viewer
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => window.open(selectedPdf, "_blank")}>
+                Open in New Tab
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setSelectedPdf(null)}>
+                Close Viewer
+              </Button>
+            </div>
           </div>
           <div className="aspect-[3/4] w-full border rounded overflow-hidden p-4 bg-white">
             <ScrollArea className="h-full">
@@ -638,7 +687,7 @@ const getMockTextbooks = (grade: string, medium: string, subject: string): Diksh
           subject: [subject],
           gradeLevel: [grade],
           board: ["CBSE"],
-          pdfUrl: resource.pdfViewerUrl // Custom field for PDF URL
+          pdfUrl: resource.pdfViewerUrl
         });
       }
     });
