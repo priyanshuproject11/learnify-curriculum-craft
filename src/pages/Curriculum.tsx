@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Curriculum } from "@/types/curriculum";
 import { 
@@ -15,6 +14,7 @@ import CalendarView from "@/components/curriculum/CalendarView";
 import ProgressView from "@/components/curriculum/ProgressView";
 import { toast } from "sonner";
 import { Book, FileText, Calendar, BarChart, Share2, Download, Loader2 } from "lucide-react";
+import TextbookSearch from "@/components/curriculum/TextbookSearch";
 
 interface GradeOption {
   id: string;
@@ -35,7 +35,6 @@ const Index = () => {
   const [subjectOptions, setSubjectOptions] = useState<SubjectOption[]>([]);
 
   useEffect(() => {
-    // Load CBSE framework on component mount
     const loadFramework = async () => {
       setIsLoadingFramework(true);
       try {
@@ -166,7 +165,7 @@ const Index = () => {
         </div>
         
         <Tabs defaultValue="dashboard" value={activeView} onValueChange={setActiveView} className="space-y-4">
-          <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto">
+          <TabsList className="grid grid-cols-4 w-full max-w-xl mx-auto">
             <TabsTrigger value="dashboard" className="flex items-center justify-center">
               <Book className="h-4 w-4 mr-2" />
               Dashboard
@@ -178,6 +177,10 @@ const Index = () => {
             <TabsTrigger value="progress" className="flex items-center justify-center">
               <BarChart className="h-4 w-4 mr-2" />
               Progress
+            </TabsTrigger>
+            <TabsTrigger value="resources" className="flex items-center justify-center">
+              <Book className="h-4 w-4 mr-2" />
+              Resources
             </TabsTrigger>
           </TabsList>
           
@@ -197,6 +200,10 @@ const Index = () => {
           
           <TabsContent value="progress" className="mt-6">
             <ProgressView curriculum={curriculum} />
+          </TabsContent>
+          
+          <TabsContent value="resources" className="mt-6">
+            <TextbookSearch />
           </TabsContent>
         </Tabs>
       </div>

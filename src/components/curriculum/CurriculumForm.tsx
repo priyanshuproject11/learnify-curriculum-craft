@@ -1,23 +1,12 @@
+import { Curriculum } from "@/types/curriculum";
 
-import { useState } from "react";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { BoardType, Grade, TimeFrame, Curriculum } from "@/types/curriculum";
-import { v4 as uuidv4 } from "uuid";
-
-interface CurriculumFormProps {
+export interface CurriculumFormProps {
   onCurriculumCreate: (curriculum: Curriculum) => void;
+  gradeOptions: { id: string; name: string; }[];
+  subjectOptions: { id: string; name: string; }[];
 }
 
-const CurriculumForm = ({ onCurriculumCreate }: CurriculumFormProps) => {
+const CurriculumForm = ({ onCurriculumCreate, gradeOptions, subjectOptions }: CurriculumFormProps) => {
   const [boardType, setBoardType] = useState<BoardType | "">("");
   const [grade, setGrade] = useState<Grade | "">("");
   const [subject, setSubject] = useState("");
@@ -75,9 +64,9 @@ const CurriculumForm = ({ onCurriculumCreate }: CurriculumFormProps) => {
                 <SelectValue placeholder="Select grade" />
               </SelectTrigger>
               <SelectContent>
-                {Array.from({ length: 12 }, (_, i) => i + 1).map((gradeNum) => (
-                  <SelectItem key={gradeNum} value={gradeNum.toString()}>
-                    Grade {gradeNum}
+                {gradeOptions.map((option) => (
+                  <SelectItem key={option.id} value={option.id}>
+                    {option.name}
                   </SelectItem>
                 ))}
               </SelectContent>

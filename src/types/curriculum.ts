@@ -1,4 +1,3 @@
-
 export type BoardType = "CBSE" | "ICSE" | "IB" | "State Board" | "Other";
 
 export type Grade = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12";
@@ -87,7 +86,35 @@ export interface Curriculum {
   units: Unit[];
 }
 
-// DIKSHA API Types
+export interface DikshaTextbook {
+  identifier: string;
+  name: string;
+  description?: string;
+  appIcon?: string;
+  medium: string[];
+  subject: string[];
+  gradeLevel: string[];
+  board: string[];
+}
+
+export interface DikshaTextbookResponse {
+  id: string;
+  ver: string;
+  ts: string;
+  params: {
+    resmsgid: string;
+    msgid: string;
+    err: string | null;
+    status: string;
+    errmsg: string | null;
+  };
+  responseCode: string;
+  result: {
+    count: number;
+    content: DikshaTextbook[];
+  };
+}
+
 export interface DikshaFrameworkTerm {
   identifier?: string;
   code: string;
