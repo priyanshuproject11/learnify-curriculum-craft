@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { DikshaTextbook } from "@/types/curriculum";
 import { TutorMode, TutorQuestion, TutorResponse, AITutorContext } from "@/types/tutor";
@@ -7,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Brain, Book, HelpCircle, ArrowLeft, FilePlus, Send } from "lucide-react";
+import { Brain, Book, HelpCircle, FilePlus, Send } from "lucide-react";
 import { toast } from "sonner";
 import { TUTOR_MODES } from "@/constants/tutorModes";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface AITutorProps {
   textbook: DikshaTextbook;
@@ -25,7 +25,6 @@ const AITutor = ({ textbook }: AITutorProps) => {
 
   const currentMode = TUTOR_MODES.find(m => m.mode === mode)!;
 
-  // Extract context information from the textbook
   const tutorContext: AITutorContext = {
     subject: textbook.subject[0] || "",
     gradeLevel: textbook.gradeLevel[0] || "",
@@ -33,18 +32,12 @@ const AITutor = ({ textbook }: AITutorProps) => {
     currentPage
   };
 
-  // Detect if PDF is loaded
   useEffect(() => {
-    // Monitor if textbook has a pdfUrl
     if (textbook.pdfUrl) {
       console.log("PDF textbook loaded:", textbook.pdfUrl);
-      setCurrentPage("Page 1"); // Default to first page
-      
-      // If textbook changes, reset conversation
+      setCurrentPage("Page 1");
       setConversation([]);
       setResponses({});
-      
-      // Auto-ask about the first page
       if (mode === 'explain') {
         setTimeout(() => {
           handleSendQuestion("Please explain this page.");
@@ -67,17 +60,12 @@ const AITutor = ({ textbook }: AITutorProps) => {
     setConversation(prev => [...prev, newQuestion]);
     
     try {
-      // Simulate API request to AI service
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Generate mock response based on mode
       const mockResponse = generateMockResponse(newQuestion, tutorContext);
-      
       setResponses(prev => ({
         ...prev,
         [questionId]: mockResponse
       }));
-      
       toast.success("AI tutor response generated", {
         description: `Responded to your ${mode} request`
       });
@@ -99,10 +87,10 @@ const AITutor = ({ textbook }: AITutorProps) => {
 
   return (
     <Card className="bg-gradient-to-br from-lms-purple/20 to-lms-blue/20">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+      <CardHeader className="py-3">
+        <CardTitle className="flex items-center justify-between text-lg">
           <div className="flex items-center gap-2">
-            <Brain className="h-5 w-5" />
+            <Brain className="h-4 w-4" />
             AI Math Tutor
           </div>
           {currentPage && (
@@ -112,43 +100,15 @@ const AITutor = ({ textbook }: AITutorProps) => {
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="text-sm">
+      <CardContent className="space-y-3">
+        <div className="text-xs">
           <div className="font-medium">{textbook.name}</div>
           <div className="text-gray-500">
             Grade: {textbook.gradeLevel?.join(", ")} | Subject: {textbook.subject?.join(", ")}
           </div>
         </div>
         
-        <div className="grid grid-cols-2 gap-3">
-          {TUTOR_MODES.map((tutorMode) => {
-            const Icon = {
-              'book': Book,
-              'help-circle': HelpCircle,
-              'brain': Brain,
-              'file-plus': FilePlus
-            }[tutorMode.icon];
-
-            return (
-              <Button 
-                key={tutorMode.mode}
-                variant={mode === tutorMode.mode ? "default" : "outline"}
-                className="flex items-center gap-2"
-                onClick={() => {
-                  setMode(tutorMode.mode);
-                  if (tutorMode.mode === 'explain' && currentPage) {
-                    handleSendQuestion(`Please explain ${currentPage}.`);
-                  }
-                }}
-              >
-                <Icon className="h-4 w-4" />
-                {tutorMode.label}
-              </Button>
-            );
-          })}
-        </div>
-
-        <ScrollArea className="h-[300px] rounded-md border bg-white/80 p-4">
+        <ScrollArea className="h-[400px] rounded-md border bg-white/80 p-4">
           {conversation.length === 0 ? (
             <div className="text-sm text-gray-600 p-4">
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
@@ -238,6 +198,30 @@ const AITutor = ({ textbook }: AITutorProps) => {
         </ScrollArea>
 
         <div className="space-y-2">
+          <Tabs value={mode} onValueChange={(value) => setMode(value as TutorMode['mode'])} className="w-full">
+            <TabsList className="w-full h-8 bg-white/50">
+              {TUTOR_MODES.map((tutorMode) => {
+                const Icon = {
+                  'book': Book,
+                  'help-circle': HelpCircle,
+                  'brain': Brain,
+                  'file-plus': FilePlus
+                }[tutorMode.icon];
+
+                return (
+                  <TabsTrigger
+                    key={tutorMode.mode}
+                    value={tutorMode.mode}
+                    className="flex-1 text-xs"
+                  >
+                    <Icon className="h-3 w-3 mr-1" />
+                    {tutorMode.label}
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+          </Tabs>
+
           <Textarea
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
@@ -246,19 +230,8 @@ const AITutor = ({ textbook }: AITutorProps) => {
             className="min-h-[80px] bg-white/80"
             disabled={isTyping}
           />
-          <div className="flex items-center justify-between">
-            {mode !== 'explain' && (
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setMode('explain')}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Page
-              </Button>
-            )}
+          <div className="flex justify-end">
             <Button 
-              className="ml-auto"
               onClick={() => handleSendQuestion()}
               disabled={!question.trim() || isTyping}
             >
@@ -278,12 +251,9 @@ const AITutor = ({ textbook }: AITutorProps) => {
   );
 };
 
-// Helper function to format tutor response with basic HTML
 const formatTutorResponse = (content: string): string => {
-  // Replace line breaks with paragraph tags
   let formatted = content.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
   
-  // Wrap in paragraphs if not already
   if (!formatted.startsWith('<p>')) {
     formatted = `<p>${formatted}</p>`;
   }
@@ -291,16 +261,13 @@ const formatTutorResponse = (content: string): string => {
   return formatted;
 };
 
-// Generate mock responses based on the question and mode
 const generateMockResponse = (question: TutorQuestion, context: AITutorContext): TutorResponse => {
   const { mode } = question;
   
-  // Default response
   let content = "I'm sorry, I don't have specific information about this topic yet.";
   let type: TutorResponse['type'] = 'text';
   const relatedConcepts: string[] = [];
   
-  // Math-specific responses for Class 10
   if (context.subject.toLowerCase().includes('math') && context.gradeLevel.includes('10')) {
     if (mode === 'explain') {
       if (question.question.toLowerCase().includes('page')) {
