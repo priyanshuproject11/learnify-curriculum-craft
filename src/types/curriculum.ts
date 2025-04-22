@@ -1,4 +1,3 @@
-
 export type BoardType = "CBSE" | "ICSE" | "IB" | "State Board" | "Other";
 
 export type Grade = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12";
@@ -22,6 +21,34 @@ export interface Activity {
   completed: boolean;
 }
 
+export interface AssessmentQuestion {
+  id: string;
+  question: string;
+  type: "Multiple Choice" | "Short Answer" | "Essay" | "True/False";
+  options?: string[];
+  correctAnswer?: string;
+  points: number;
+  explanation?: string;
+}
+
+export interface FlashCard {
+  id: string;
+  front: string;
+  back: string;
+  topic: string;
+}
+
+export interface Assessment {
+  id: string;
+  title: string;
+  type: "Quiz" | "Test" | "Project" | "Presentation" | "Essay";
+  date: Date | string;
+  instructions?: string;
+  timeLimit?: string;
+  questions: AssessmentQuestion[];
+  aiGenerated?: boolean;
+}
+
 export interface Lesson {
   id: string;
   title: string;
@@ -35,25 +62,6 @@ export interface Lesson {
   status: CompletionStatus;
   studentUnderstanding?: number;
   remediation?: string;
-}
-
-export interface AssessmentQuestion {
-  id: string;
-  question: string;
-  type: "Multiple Choice" | "Short Answer" | "Essay" | "True/False";
-  options?: string[];
-  correctAnswer?: string;
-  points: number;
-}
-
-export interface Assessment {
-  id: string;
-  title: string;
-  type: "Quiz" | "Test" | "Project" | "Presentation" | "Essay";
-  date?: Date | string;
-  instructions?: string;
-  timeLimit?: string;
-  questions: AssessmentQuestion[];
 }
 
 export interface Unit {

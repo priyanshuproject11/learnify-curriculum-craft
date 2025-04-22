@@ -1,13 +1,12 @@
-
 import { useState, useEffect } from "react";
-import { Unit } from "@/types/curriculum";
+import { Unit, Assessment, AssessmentQuestion, FlashCard } from "@/types/curriculum";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { CalendarIcon, Plus, FileText, BookOpen } from "lucide-react";
+import { CalendarIcon, Plus, FileText, BookOpen, Magic } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -23,25 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-
-interface Assessment {
-  id: string;
-  title: string;
-  type: "Quiz" | "Test" | "Project" | "Presentation" | "Essay";
-  date?: Date;
-  questions: AssessmentQuestion[];
-  instructions?: string;
-  timeLimit?: string;
-}
-
-interface AssessmentQuestion {
-  id: string;
-  question: string;
-  type: "Multiple Choice" | "Short Answer" | "Essay" | "True/False";
-  options?: string[];
-  correctAnswer?: string;
-  points?: number;
-}
+import { toast } from "sonner";
 
 interface AssessmentEditorProps {
   unit: Unit | null;
@@ -57,25 +38,81 @@ const AssessmentEditor = ({ unit, onSave, onCancel }: AssessmentEditorProps) => 
   const [instructions, setInstructions] = useState<string>("");
   const [timeLimit, setTimeLimit] = useState<string>("30 minutes");
   const [questions, setQuestions] = useState<AssessmentQuestion[]>([]);
-  
   const [currentQuestion, setCurrentQuestion] = useState<string>("");
   const [currentQuestionType, setCurrentQuestionType] = useState<AssessmentQuestion["type"]>("Multiple Choice");
   const [currentOptions, setCurrentOptions] = useState<string>("");
-  
+  const [flashcards, setFlashcards] = useState<FlashCard[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+
   useEffect(() => {
     if (unit?.assessment) {
-      setAssessment(unit.assessment);
-      setTitle(unit.assessment.title);
-      setType(unit.assessment.type);
-      setDate(unit.assessment.date ? new Date(unit.assessment.date) : undefined);
-      setInstructions(unit.assessment.instructions || "");
-      setTimeLimit(unit.assessment.timeLimit || "30 minutes");
-      setQuestions(unit.assessment.questions || []);
+      const existingAssessment = unit.assessment;
+      setAssessment(existingAssessment);
+      setTitle(existingAssessment.title);
+      setType(existingAssessment.type);
+      setDate(existingAssessment.date ? new Date(existingAssessment.date) : undefined);
+      setInstructions(existingAssessment.instructions || "");
+      setTimeLimit(existingAssessment.timeLimit || "30 minutes");
+      setQuestions(existingAssessment.questions || []);
     } else {
       setTitle(unit?.name ? `${unit.name} Assessment` : "");
     }
   }, [unit]);
-  
+
+  const handleGenerateContent = async () => {
+    if (!unit) return;
+    setIsGenerating(true);
+    
+    try {
+      // Mock AI generation for now
+      const mockQuestions: AssessmentQuestion[] = [
+        {
+          id: uuidv4(),
+          question: `What are the key principles of ${unit.name}?`,
+          type: "Multiple Choice",
+          options: [
+            "First principle and its application",
+            "Second principle with examples",
+            "Third principle in context",
+            "Fourth principle demonstrated"
+          ],
+          correctAnswer: "First principle and its application",
+          points: 10,
+          explanation: "The first principle is fundamental to understanding this topic."
+        },
+        {
+          id: uuidv4(),
+          question: `Explain the significance of ${unit.keyConcepts.split('\n')[0]}`,
+          type: "Essay",
+          points: 20
+        }
+      ];
+
+      const mockFlashcards: FlashCard[] = [
+        {
+          id: uuidv4(),
+          front: `Define: ${unit.name}`,
+          back: `${unit.objectives.split('\n')[0]}`,
+          topic: unit.name
+        },
+        {
+          id: uuidv4(),
+          front: "Key Concept",
+          back: unit.keyConcepts.split('\n')[0],
+          topic: unit.name
+        }
+      ];
+
+      setQuestions(prev => [...prev, ...mockQuestions]);
+      setFlashcards(prev => [...prev, ...mockFlashcards]);
+      toast.success("Generated sample content successfully!");
+    } catch (error) {
+      toast.error("Failed to generate content. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleAddQuestion = () => {
     if (!currentQuestion) return;
     
@@ -95,44 +132,11 @@ const AssessmentEditor = ({ unit, onSave, onCancel }: AssessmentEditorProps) => 
     setCurrentQuestion("");
     setCurrentOptions("");
   };
-  
+
   const handleRemoveQuestion = (id: string) => {
     setQuestions(questions.filter(q => q.id !== id));
   };
-  
-  const handleGenerateQuestions = () => {
-    // Mock AI-generated questions
-    const mockQuestions: AssessmentQuestion[] = [
-      {
-        id: uuidv4(),
-        question: "What is the main property of linear equations?",
-        type: "Multiple Choice",
-        options: [
-          "They always form a straight line when graphed",
-          "They always have exactly one variable",
-          "They always have a degree of 2",
-          "They cannot have negative coefficients"
-        ],
-        points: 10
-      },
-      {
-        id: uuidv4(),
-        question: "Solve for x: 2x + 5 = 15",
-        type: "Short Answer",
-        points: 10
-      },
-      {
-        id: uuidv4(),
-        question: "True or False: The slope of a vertical line is undefined.",
-        type: "True/False",
-        options: ["True", "False"],
-        points: 5
-      }
-    ];
-    
-    setQuestions([...questions, ...mockQuestions]);
-  };
-  
+
   const handleSubmit = () => {
     if (!title || !type) return;
     
@@ -140,10 +144,11 @@ const AssessmentEditor = ({ unit, onSave, onCancel }: AssessmentEditorProps) => 
       id: assessment?.id || uuidv4(),
       title,
       type,
-      date,
+      date: date || new Date(),
       questions,
       instructions,
-      timeLimit
+      timeLimit,
+      aiGenerated: questions.length > 0
     };
     
     if (!unit) return;
@@ -155,9 +160,22 @@ const AssessmentEditor = ({ unit, onSave, onCancel }: AssessmentEditorProps) => 
     
     onSave(updatedUnit);
   };
-  
+
   return (
     <div className="space-y-4 py-2">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold">Assessment Editor</h3>
+        <Button
+          variant="outline"
+          className="bg-lms-purple/20 hover:bg-lms-purple/40 flex items-center"
+          onClick={handleGenerateContent}
+          disabled={isGenerating}
+        >
+          <Magic className="h-4 w-4 mr-2" />
+          {isGenerating ? "Generating..." : "Generate Sample Content"}
+        </Button>
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor="assessment-title">Assessment Title</Label>
         <Input 
@@ -367,6 +385,22 @@ const AssessmentEditor = ({ unit, onSave, onCancel }: AssessmentEditorProps) => 
           </div>
         </div>
       </div>
+      
+      {flashcards.length > 0 && (
+        <div className="border rounded-md p-4 mb-4">
+          <h4 className="font-medium mb-2">Generated Flashcards</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {flashcards.map((card) => (
+              <Card key={card.id} className="bg-white">
+                <CardContent className="p-4">
+                  <div className="font-medium mb-2">{card.front}</div>
+                  <div className="text-gray-600">{card.back}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
       
       <div className="flex justify-end space-x-2 mt-6">
         <Button variant="outline" onClick={onCancel}>Cancel</Button>
