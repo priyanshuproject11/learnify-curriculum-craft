@@ -4,7 +4,7 @@ import { Curriculum, Unit } from "@/types/curriculum";
 import CurriculumForm from "@/components/curriculum/CurriculumForm";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import UnitEditor from "@/components/curriculum/UnitEditor";
 import AssessmentEditor from "@/components/curriculum/AssessmentEditor";
@@ -16,9 +16,17 @@ interface DashboardViewProps {
   curriculum: Curriculum | null;
   onCurriculumCreate: (curriculum: Curriculum) => void;
   onCurriculumUpdate: (curriculum: Curriculum) => void;
+  gradeOptions?: { id: string; name: string }[];
+  subjectOptions?: { id: string; name: string }[];
 }
 
-const DashboardView = ({ curriculum, onCurriculumCreate, onCurriculumUpdate }: DashboardViewProps) => {
+const DashboardView = ({ 
+  curriculum, 
+  onCurriculumCreate, 
+  onCurriculumUpdate,
+  gradeOptions = [],
+  subjectOptions = []
+}: DashboardViewProps) => {
   const [selectedClass, setSelectedClass] = useState<string>("Class 9A");
   const [selectedSubject, setSelectedSubject] = useState<string>("Mathematics");
   const [selectedTerm, setSelectedTerm] = useState<string>("Term 1");
@@ -74,15 +82,24 @@ const DashboardView = ({ curriculum, onCurriculumCreate, onCurriculumUpdate }: D
     // In a real implementation, this would call an API to generate content
   };
   
-  // Mock classes and subjects for the demo
+  // Use DIKSHA options if available, otherwise use mock data
   const classes = ["Class 9A", "Class 9B", "Class 10A", "Class 10B"];
-  const subjects = ["Mathematics", "Science", "English", "History"];
+  
+  // Use DIKSHA options for subjects if available
+  const displaySubjects = subjectOptions.length > 0 
+    ? subjectOptions.map(s => s.name) 
+    : ["Mathematics", "Science", "English", "History"];
+  
   const terms = ["Term 1", "Term 2", "Term 3", "Term 4"];
 
   return (
     <div className="space-y-6">
       {!curriculum ? (
-        <CurriculumForm onCurriculumCreate={onCurriculumCreate} />
+        <CurriculumForm 
+          onCurriculumCreate={onCurriculumCreate} 
+          gradeOptions={gradeOptions}
+          subjectOptions={subjectOptions}
+        />
       ) : (
         <div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -107,7 +124,7 @@ const DashboardView = ({ curriculum, onCurriculumCreate, onCurriculumUpdate }: D
                   <SelectValue placeholder="Select subject" />
                 </SelectTrigger>
                 <SelectContent>
-                  {subjects.map((subject) => (
+                  {displaySubjects.map((subject) => (
                     <SelectItem key={subject} value={subject}>{subject}</SelectItem>
                   ))}
                 </SelectContent>

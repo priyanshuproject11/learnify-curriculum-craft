@@ -1,7 +1,12 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Curriculum } from "@/types/curriculum";
-import { searchDikshaCourses, convertDikshaCourseToUnit } from "@/services/diksha";
+import { 
+  searchDikshaCourses, 
+  convertDikshaCourseToUnit, 
+  fetchCBSEFramework,
+  getGradesAndSubjects 
+} from "@/services/diksha";
 import Navbar from "@/components/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -9,12 +14,47 @@ import DashboardView from "@/components/curriculum/DashboardView";
 import CalendarView from "@/components/curriculum/CalendarView";
 import ProgressView from "@/components/curriculum/ProgressView";
 import { toast } from "sonner";
-import { Book, FileText, Calendar, BarChart, Share2, Download } from "lucide-react";
+import { Book, FileText, Calendar, BarChart, Share2, Download, Loader2 } from "lucide-react";
+
+interface GradeOption {
+  id: string;
+  name: string;
+}
+
+interface SubjectOption {
+  id: string;
+  name: string;
+}
 
 const Index = () => {
   const [curriculum, setCurriculum] = useState<Curriculum | null>(null);
   const [activeView, setActiveView] = useState<string>("dashboard");
   const [isImporting, setIsImporting] = useState<boolean>(false);
+  const [isLoadingFramework, setIsLoadingFramework] = useState<boolean>(false);
+  const [gradeOptions, setGradeOptions] = useState<GradeOption[]>([]);
+  const [subjectOptions, setSubjectOptions] = useState<SubjectOption[]>([]);
+
+  useEffect(() => {
+    // Load CBSE framework on component mount
+    const loadFramework = async () => {
+      setIsLoadingFramework(true);
+      try {
+        const framework = await fetchCBSEFramework();
+        const { grades, subjects } = getGradesAndSubjects(framework);
+        
+        setGradeOptions(grades);
+        setSubjectOptions(subjects);
+        toast.success("CBSE curriculum framework loaded");
+      } catch (error) {
+        console.error("Failed to load CBSE framework:", error);
+        toast.error("Failed to load CBSE curriculum framework");
+      } finally {
+        setIsLoadingFramework(false);
+      }
+    };
+
+    loadFramework();
+  }, []);
 
   const handleCurriculumCreate = (newCurriculum: Curriculum) => {
     setCurriculum(newCurriculum);
@@ -87,6 +127,12 @@ const Index = () => {
             <p className="text-gray-600">
               Create, manage, and track your curriculum structure, units, and assessments
             </p>
+            {isLoadingFramework && (
+              <div className="flex items-center text-sm text-lms-blue mt-2">
+                <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                Loading CBSE curriculum framework...
+              </div>
+            )}
           </div>
           
           <div className="flex space-x-2">
@@ -100,8 +146,17 @@ const Index = () => {
               onClick={() => handleImportDiksha(curriculum)}
               disabled={isImporting || !curriculum}
             >
-              <Download className="h-4 w-4 mr-2" />
-              {isImporting ? "Importing..." : "Import DIKSHA"}
+              {isImporting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Importing...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Import DIKSHA
+                </>
+              )}
             </Button>
             <Button variant="outline" className="flex items-center" onClick={handleShare}>
               <Share2 className="h-4 w-4 mr-2" />
@@ -131,6 +186,8 @@ const Index = () => {
               curriculum={curriculum} 
               onCurriculumCreate={handleCurriculumCreate}
               onCurriculumUpdate={handleCurriculumUpdate}
+              gradeOptions={gradeOptions}
+              subjectOptions={subjectOptions}
             />
           </TabsContent>
           
