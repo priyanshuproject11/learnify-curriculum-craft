@@ -37,6 +37,25 @@ export interface Lesson {
   remediation?: string;
 }
 
+export interface AssessmentQuestion {
+  id: string;
+  question: string;
+  type: "Multiple Choice" | "Short Answer" | "Essay" | "True/False";
+  options?: string[];
+  correctAnswer?: string;
+  points: number;
+}
+
+export interface Assessment {
+  id: string;
+  title: string;
+  type: "Quiz" | "Test" | "Project" | "Presentation" | "Essay";
+  date?: Date | string;
+  instructions?: string;
+  timeLimit?: string;
+  questions: AssessmentQuestion[];
+}
+
 export interface Unit {
   id: string;
   name: string;
@@ -46,6 +65,8 @@ export interface Unit {
   keyConcepts: string;
   resources: Resource[];
   lessons: Lesson[];
+  estimatedTime?: string;
+  assessment?: Assessment;
 }
 
 export interface Curriculum {

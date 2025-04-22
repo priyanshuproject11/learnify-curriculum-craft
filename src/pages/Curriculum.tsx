@@ -2,14 +2,17 @@
 import { useState } from "react";
 import { Curriculum } from "@/types/curriculum";
 import Navbar from "@/components/Navbar";
-import CurriculumForm from "@/components/curriculum/CurriculumForm";
-import UnitPlanner from "@/components/curriculum/UnitPlanner";
-import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import DashboardView from "@/components/curriculum/DashboardView";
+import CalendarView from "@/components/curriculum/CalendarView";
+import ProgressView from "@/components/curriculum/ProgressView";
 import { toast } from "sonner";
-import { Book, FileText } from "lucide-react";
+import { Book, FileText, Calendar, BarChart, Share2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [curriculum, setCurriculum] = useState<Curriculum | null>(null);
+  const [activeView, setActiveView] = useState<string>("dashboard");
 
   const handleCurriculumCreate = (newCurriculum: Curriculum) => {
     setCurriculum(newCurriculum);
@@ -18,6 +21,14 @@ const Index = () => {
 
   const handleCurriculumUpdate = (updatedCurriculum: Curriculum) => {
     setCurriculum(updatedCurriculum);
+  };
+
+  const handleExportPDF = () => {
+    toast.success("Curriculum exported as PDF");
+  };
+
+  const handleShare = () => {
+    toast.success("Curriculum shared with colleagues");
   };
 
   return (
@@ -29,53 +40,54 @@ const Index = () => {
           <div>
             <h1 className="text-3xl font-bold">Curriculum Planner</h1>
             <p className="text-gray-600">
-              Create and manage your curriculum structure, units, and lessons
+              Create, manage, and track your curriculum structure, units, and assessments
             </p>
           </div>
           
-          {curriculum && (
-            <div className="flex space-x-2">
-              <Button variant="outline" className="flex items-center">
-                <FileText className="h-4 w-4 mr-2" />
-                Export as PDF
-              </Button>
-            </div>
-          )}
+          <div className="flex space-x-2">
+            <Button variant="outline" className="flex items-center" onClick={handleExportPDF}>
+              <FileText className="h-4 w-4 mr-2" />
+              Export as PDF
+            </Button>
+            <Button variant="outline" className="flex items-center" onClick={handleShare}>
+              <Share2 className="h-4 w-4 mr-2" />
+              Share
+            </Button>
+          </div>
         </div>
         
-        {!curriculum ? (
-          <CurriculumForm onCurriculumCreate={handleCurriculumCreate} />
-        ) : (
-          <div>
-            <div className="lms-card mb-6 bg-gradient-to-br from-lms-blue/40 to-lms-purple/40">
-              <div className="flex justify-between items-center">
-                <div>
-                  <div className="flex items-center">
-                    <Book className="h-5 w-5 mr-2 text-primary-foreground" />
-                    <h2 className="text-xl font-bold">{curriculum.subject}</h2>
-                  </div>
-                  <div className="flex space-x-3 mt-2">
-                    <span className="lms-badge-blue">{curriculum.boardType}</span>
-                    <span className="lms-badge-green">Grade {curriculum.grade}</span>
-                    <span className="lms-badge-purple">{curriculum.timeframe}</span>
-                  </div>
-                </div>
-                
-                <Button 
-                  variant="outline"
-                  onClick={() => setCurriculum(null)}
-                >
-                  Edit Curriculum
-                </Button>
-              </div>
-            </div>
-            
-            <UnitPlanner 
-              curriculum={curriculum}
-              onUpdateCurriculum={handleCurriculumUpdate}
+        <Tabs defaultValue="dashboard" value={activeView} onValueChange={setActiveView} className="space-y-4">
+          <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto">
+            <TabsTrigger value="dashboard" className="flex items-center justify-center">
+              <Book className="h-4 w-4 mr-2" />
+              Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="calendar" className="flex items-center justify-center">
+              <Calendar className="h-4 w-4 mr-2" />
+              Calendar
+            </TabsTrigger>
+            <TabsTrigger value="progress" className="flex items-center justify-center">
+              <BarChart className="h-4 w-4 mr-2" />
+              Progress
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="dashboard" className="mt-6">
+            <DashboardView 
+              curriculum={curriculum} 
+              onCurriculumCreate={handleCurriculumCreate}
+              onCurriculumUpdate={handleCurriculumUpdate}
             />
-          </div>
-        )}
+          </TabsContent>
+          
+          <TabsContent value="calendar" className="mt-6">
+            <CalendarView curriculum={curriculum} />
+          </TabsContent>
+          
+          <TabsContent value="progress" className="mt-6">
+            <ProgressView curriculum={curriculum} />
+          </TabsContent>
+        </Tabs>
       </div>
       
       <footer className="mt-16 py-6 bg-white bg-opacity-70 border-t">
