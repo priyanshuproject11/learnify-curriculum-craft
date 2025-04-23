@@ -3,18 +3,12 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { 
   ArrowLeft, 
-  ChevronLeft, 
-  ChevronRight, 
-  BookOpen,
-  ArrowRight,
-  Pin,
   Search
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import TextbookViewer from "@/components/notebook/TextbookViewer";
 import AIToolsPanel from "@/components/notebook/AIToolsPanel";
-import LinkedNotes from "@/components/notebook/LinkedNotes";
 import RevisionSuggestion from "@/components/notebook/RevisionSuggestion";
 import { Input } from "@/components/ui/input";
 
@@ -102,7 +96,7 @@ const NotebookInterface = ({ subjectId, classLevel }: NotebookInterfaceProps) =>
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 h-[calc(100vh-7rem)] flex flex-col">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Link to="/notebook">
@@ -136,7 +130,7 @@ const NotebookInterface = ({ subjectId, classLevel }: NotebookInterfaceProps) =>
       )}
       
       {!selectedChapter ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-auto">
           {chapters.map((chapter) => (
             <Card 
               key={chapter.id} 
@@ -150,13 +144,12 @@ const NotebookInterface = ({ subjectId, classLevel }: NotebookInterfaceProps) =>
                     {chapter.pages} pages
                   </p>
                 </div>
-                <BookOpen className="h-5 w-5 text-blue-600" />
               </div>
             </Card>
           ))}
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="flex flex-col flex-grow overflow-hidden">
           <div className="flex items-center gap-2">
             <Button 
               variant="ghost" 
@@ -171,37 +164,35 @@ const NotebookInterface = ({ subjectId, classLevel }: NotebookInterfaceProps) =>
             </h2>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4" onMouseUp={handleTextSelection}>
-            {/* Left 2 columns: Textbook viewer and linked notes - spans 8/12 columns */}
-            <div className="lg:col-span-8 space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-grow overflow-hidden" onMouseUp={handleTextSelection}>
+            {/* Left 8 columns: Textbook viewer - removed the linked notes component */}
+            <div className="lg:col-span-8 h-full">
               <TextbookViewer 
                 currentPage={currentPage}
                 totalPages={chapters.find(c => c.id === selectedChapter)?.pages || 1}
                 onNextPage={handleNextPage}
                 onPrevPage={handlePrevPage}
                 chapterId={selectedChapter}
-              />
-              
-              <LinkedNotes 
-                page={currentPage} 
                 highlightedText={highlightedText}
-                onClearHighlight={() => setHighlightedText("")}
               />
             </div>
             
-            {/* Right 1 column: Interactive AI tabs - spans 4/12 columns */}
-            <div className="lg:col-span-4">
+            {/* Right 4 columns: Interactive AI tabs */}
+            <div className="lg:col-span-4 h-full">
               <AIToolsPanel 
                 highlightedText={highlightedText} 
                 currentPage={currentPage}
                 chapterTitle={chapters.find(c => c.id === selectedChapter)?.title || ""}
                 subjectName={getSubjectName(subjectId)}
+                onClearHighlight={() => setHighlightedText("")}
               />
             </div>
           </div>
           
           {/* Bottom suggestion bar */}
-          <RevisionSuggestion />
+          <div className="mt-2">
+            <RevisionSuggestion />
+          </div>
         </div>
       )}
     </div>

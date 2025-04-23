@@ -11,10 +11,10 @@ const Notebook = () => {
   const { subjectId } = useParams();
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-white to-blue-50 flex flex-col">
       <Navbar />
       
-      <div className="container mx-auto px-2 py-2">
+      <div className="container mx-auto px-2 py-2 flex-grow">
         {!subjectId ? (
           <SubjectLibrary classLevel={CLASS_LEVEL} />
         ) : (
