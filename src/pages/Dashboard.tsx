@@ -14,11 +14,11 @@ const features = [
     iconBg: "bg-lms-blue/40"
   },
   {
-    title: "Resources",
+    title: "Notebook",
     icon: <FileText className="h-8 w-8" />,
     description: "Access textbooks and AI tutoring",
-    href: "/resources",
-    enabled: true, // Changed from false to true
+    href: "/notebook",
+    enabled: true,
     color: "bg-lms-green/20",
     iconBg: "bg-lms-green/40"
   },
