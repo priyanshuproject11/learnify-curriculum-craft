@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { 
@@ -64,7 +63,8 @@ const NotebookInterface = ({ subjectId, classLevel }: NotebookInterfaceProps) =>
   const [highlightedText, setHighlightedText] = useState("");
   const [chapters, setChapters] = useState<any[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  
+  const [searchValue, setSearchValue] = useState("");
+
   useEffect(() => {
     // Load chapters for the selected subject
     setChapters(SAMPLE_CHAPTERS[subjectId as keyof typeof SAMPLE_CHAPTERS] || []);
@@ -130,23 +130,33 @@ const NotebookInterface = ({ subjectId, classLevel }: NotebookInterfaceProps) =>
       )}
       
       {!selectedChapter ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-auto">
-          {chapters.map((chapter) => (
-            <Card 
-              key={chapter.id} 
-              className="p-4 cursor-pointer hover:bg-blue-50 transition-colors"
-              onClick={() => setSelectedChapter(chapter.id)}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">{chapter.title}</h3>
-                  <p className="text-sm text-gray-500">
-                    {chapter.pages} pages
-                  </p>
+        <div>
+          <div className="mb-2 flex w-full">
+            <Input
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              placeholder="Search within textbooks..."
+              className="max-w-xl w-full rounded-lg border-2 border-blue-100 shadow-none"
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-auto">
+            {chapters.map((chapter) => (
+              <Card 
+                key={chapter.id} 
+                className="p-4 cursor-pointer hover:bg-blue-50 transition-colors"
+                onClick={() => setSelectedChapter(chapter.id)}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium">{chapter.title}</h3>
+                    <p className="text-sm text-gray-500">
+                      {chapter.pages} pages
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            ))}
+          </div>
         </div>
       ) : (
         <div className="flex flex-col flex-grow overflow-hidden">
@@ -164,8 +174,16 @@ const NotebookInterface = ({ subjectId, classLevel }: NotebookInterfaceProps) =>
             </h2>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-grow overflow-hidden" onMouseUp={handleTextSelection}>
-            {/* Left 8 columns: Textbook viewer - removed the linked notes component */}
+          <div className="mb-2 flex w-full">
+            <Input
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              placeholder="Search within this chapter..."
+              className="max-w-xl w-full rounded-lg border-2 border-blue-100 shadow-none"
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-grow overflow-hidden" style={{height: "100%"}}>
             <div className="lg:col-span-8 h-full">
               <TextbookViewer 
                 currentPage={currentPage}
@@ -177,7 +195,6 @@ const NotebookInterface = ({ subjectId, classLevel }: NotebookInterfaceProps) =>
               />
             </div>
             
-            {/* Right 4 columns: Interactive AI tabs */}
             <div className="lg:col-span-4 h-full">
               <AIToolsPanel 
                 highlightedText={highlightedText} 
@@ -189,7 +206,6 @@ const NotebookInterface = ({ subjectId, classLevel }: NotebookInterfaceProps) =>
             </div>
           </div>
           
-          {/* Bottom suggestion bar */}
           <div className="mt-2">
             <RevisionSuggestion />
           </div>
