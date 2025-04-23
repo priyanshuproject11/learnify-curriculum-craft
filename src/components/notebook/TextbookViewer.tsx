@@ -32,7 +32,9 @@ const TextbookViewer = ({
   const [scale, setScale] = useState(1);
   const [notes, setNotes] = useState<Note[]>([]);
   
+  // Mock notes for demonstration
   useEffect(() => {
+    // This would fetch from an API in a real app
     setNotes([
       {
         id: 'note-1',
@@ -51,6 +53,7 @@ const TextbookViewer = ({
     ]);
   }, []);
   
+  // Mock content - this would be replaced with actual textbook content
   const getMockContent = (chapterId: string, page: number) => {
     if (chapterId.startsWith("math")) {
       const content = `In this chapter, we will learn about real numbers, their properties, 
@@ -105,55 +108,61 @@ const TextbookViewer = ({
     );
   };
   
-  const highlightParagraph = (paragraph: string, noteList: Note[]) => {
-    if (!noteList.length) return paragraph;
-    const [firstNote, ...rest] = noteList;
-    const parts = paragraph.split(firstNote.highlight);
-
-    return parts.reduce<React.ReactNode[]>((acc, part, idx) => {
-      if (idx > 0) {
-        acc.push(
-          <HoverCard key={`highlight-${firstNote.id}-${idx}`}>
-            <HoverCardTrigger asChild>
-              <span className="bg-yellow-200 px-1 py-0.5 rounded cursor-help">
-                {firstNote.highlight}
-              </span>
-            </HoverCardTrigger>
-            <HoverCardContent className="w-80 bg-white p-3 shadow-lg">
-              <div className="space-y-2">
-                <div className="font-medium">Note:</div>
-                <p className="text-sm">{firstNote.content}</p>
-                <div className="text-xs text-gray-500">
-                  {firstNote.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </div>
-              </div>
-            </HoverCardContent>
-          </HoverCard>
-        );
-      }
-      acc.push(rest.length ? highlightParagraph(part, rest) : part);
-      return acc;
-    }, [] as React.ReactNode[]);
-  };
-
   const highlightContentWithNotes = (content: string, pageNotes: Note[]) => {
-    return (
-      <div className="space-y-4">
-        <h3 className="text-xl font-bold mb-4">Real Numbers</h3>
-        {content.split('\n\n').map((paragraph, index) => {
-          let paragraphNode: React.ReactNode =
-            pageNotes.length > 0 ? highlightParagraph(paragraph, pageNotes) : paragraph;
+    let highlightedContent = <div className="space-y-4">
+      <h3 className="text-xl font-bold mb-4">Real Numbers</h3>
+      
+      {pageNotes.length > 0 ? (
+        content.split('\n\n').map((paragraph, index) => {
+          const paragraphWithHighlights = pageNotes.reduce((acc: React.ReactNode[], note) => {
+            if (paragraph.includes(note.highlight)) {
+              const parts = paragraph.split(note.highlight);
+              const result: React.ReactNode[] = [];
+              
+              parts.forEach((part, i) => {
+                if (part) {
+                  result.push(part);
+                }
+                
+                if (i < parts.length - 1) {
+                  result.push(
+                    <HoverCard key={`highlight-${note.id}-${i}`}>
+                      <HoverCardTrigger asChild>
+                        <span className="bg-yellow-200 px-1 py-0.5 rounded cursor-help">
+                          {note.highlight}
+                        </span>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-80 bg-white p-3 shadow-lg">
+                        <div className="space-y-2">
+                          <div className="font-medium">Note:</div>
+                          <p className="text-sm">{note.content}</p>
+                          <div className="text-xs text-gray-500">
+                            {note.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                  );
+                }
+              });
+              
+              return result;
+            }
+            
+            return [paragraph];
+          }, []);
+          
           if (index === 0) {
-            return <p key={index} className="mb-3">{paragraphNode}</p>;
+            return <p key={index} className="mb-3">{paragraphWithHighlights}</p>;
           } else if (index === 1) {
             return (
               <div key={index} className="bg-blue-50 p-3 border-l-4 border-blue-500 mb-3">
                 <h4 className="font-medium">Definition</h4>
-                <p>{paragraphNode}</p>
+                <p>{paragraphWithHighlights}</p>
               </div>
             );
           } else if (index === 2) {
-            return <p key={index} className="mb-3">{paragraphNode}</p>;
+            return <p key={index} className="mb-3">{paragraphWithHighlights}</p>;
           } else if (index === 3) {
             return (
               <ul key={index} className="list-disc pl-5 mb-3">
@@ -166,13 +175,45 @@ const TextbookViewer = ({
             return (
               <div key={index} className="bg-yellow-50 p-3 border-l-4 border-yellow-500">
                 <h4 className="font-medium">Example</h4>
-                <p>{paragraphNode}</p>
+                <p>{paragraphWithHighlights}</p>
               </div>
             );
           }
-        })}
-      </div>
-    );
+        })
+      ) : (
+        content.split('\n\n').map((paragraph, index) => {
+          if (index === 0) {
+            return <p key={index} className="mb-3">{paragraph}</p>;
+          } else if (index === 1) {
+            return (
+              <div key={index} className="bg-blue-50 p-3 border-l-4 border-blue-500 mb-3">
+                <h4 className="font-medium">Definition</h4>
+                <p>{paragraph}</p>
+              </div>
+            );
+          } else if (index === 2) {
+            return <p key={index} className="mb-3">{paragraph}</p>;
+          } else if (index === 3) {
+            return (
+              <ul key={index} className="list-disc pl-5 mb-3">
+                {paragraph.split('•').filter(Boolean).map((item, i) => (
+                  <li key={i}>{item.trim()}</li>
+                ))}
+              </ul>
+            );
+          } else {
+            return (
+              <div key={index} className="bg-yellow-50 p-3 border-l-4 border-yellow-500">
+                <h4 className="font-medium">Example</h4>
+                <p>{paragraph}</p>
+              </div>
+            );
+          }
+        })
+      )}
+    </div>;
+    
+    return highlightedContent;
   };
   
   const zoomIn = () => {
