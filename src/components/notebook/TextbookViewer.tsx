@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -115,15 +114,19 @@ const TextbookViewer = ({
       
       {pageNotes.length > 0 ? (
         content.split('\n\n').map((paragraph, index) => {
-          const paragraphWithHighlights = pageNotes.reduce((acc, note) => {
+          const paragraphWithHighlights = pageNotes.reduce((acc: React.ReactNode[], note) => {
             if (paragraph.includes(note.highlight)) {
-              const parts = acc.split(note.highlight);
-              return parts.map((part, i) => {
-                if (i === parts.length - 1) return part;
-                return (
-                  <>
-                    {part}
-                    <HoverCard>
+              const parts = paragraph.split(note.highlight);
+              const result: React.ReactNode[] = [];
+              
+              parts.forEach((part, i) => {
+                if (part) {
+                  result.push(part);
+                }
+                
+                if (i < parts.length - 1) {
+                  result.push(
+                    <HoverCard key={`highlight-${note.id}-${i}`}>
                       <HoverCardTrigger asChild>
                         <span className="bg-yellow-200 px-1 py-0.5 rounded cursor-help">
                           {note.highlight}
@@ -139,12 +142,15 @@ const TextbookViewer = ({
                         </div>
                       </HoverCardContent>
                     </HoverCard>
-                  </>
-                );
+                  );
+                }
               });
+              
+              return result;
             }
-            return acc;
-          }, paragraph);
+            
+            return [paragraph];
+          }, []);
           
           if (index === 0) {
             return <p key={index} className="mb-3">{paragraphWithHighlights}</p>;
